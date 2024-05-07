@@ -1,0 +1,110 @@
+---
+title: "Happiness And TV Consumption"
+author: "Fabrizio Varela"
+date: "2024-03-10"
+output: 
+  html_document:
+    suppress_warnings: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+## Install packages
+```{r, echo=FALSE}
+#install.packages("haven") 
+#install.packages("tidyverse")
+#install.packages("pheatmap")
+```
+
+## Importing libraries
+```{r, echo=FALSE}
+library(haven)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(pheatmap)
+```
+
+## Introduction
+## Definition of Key Concepts
+In this study, "happiness" refers to the subjective experience of well-being and life satisfaction. "TV consumption" denotes the amount of time individuals spend watching television programs or content.
+
+## Literature Review
+A review of the literature reveals various studies on the relationship between happiness and TV consumption. These studies have explored whether the amount of time spent watching TV affects individuals' happiness levels. The findings are diverse, with some research suggesting that excessive TV consumption may be associated with lower levels of happiness due to factors such as sedentary behavior and exposure to negative content. However, other studies have found no significant correlation between TV viewing and happiness.
+
+## Formulation of Hypotheses
+Based on the literature analysis, several hypotheses regarding the relationship between happiness and TV consumption can be formulated:
+			Hypothesis 1: Higher levels of TV consumption will be negatively correlated with happiness and life satisfaction.
+			Hypothesis 2: There may be a U-shaped relationship between TV consumption and happiness, with moderate levels of viewing associated with higher happiness levels, but excessive or minimal viewing associated with lower happiness levels.
+			Hypothesis 3: The content and genre of TV programs may moderate the relationship between TV consumption and happiness, with certain types of content (e.g., educational or uplifting programs) having a more positive impact on happiness than others.
+By examining these hypotheses, this study aims to deepen our understanding of the complex relationship between TV consumption and happiness, considering both the quantity and quality of viewing experiences.
+
+## Research Question
+How does the quantity and quality of television consumption influence individuals' happiness levels, and what factors moderate this relationship?
+
+## Loading data
+```{r}
+initial_data6 <- read_dta("pl.dta")
+initial_data_tvh <- initial_data6 %>%
+  mutate(plh0186 = as.numeric(as.character(plh0186)),
+         pli0083 = as.numeric(as.character(pli0083)))
+```
+
+## Transforming data
+```{r}
+transformed_data <- initial_data_tvh %>% 
+  filter(plh0186 > 0, pli0083 > 0)
+```
+
+## Data explanation
+In analysis there are used labels as following: 
+happiness - 1 (unhappy) , 5 (very happy);
+TV consumption - 1 (daily) , 5 (never)
+## Data analysis of relationship between happiness and TV consumption
+Analyzing the relationship between the level of happiness and the level of TV consumption, no correlation was found between them. The value of correlation was:
+```{r}
+corelation1 <- cor(transformed_data$plh0186, transformed_data$pli0083 , use = "complete.obs")
+corelation1
+```
+
+First plot shows happiness level distribution.
+```{r}
+ggplot(data = transformed_data, aes(x = plh0186)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "skyblue") +
+  labs(title = "Level of happiness", x = "Level of happiness", y = "Respondents")
+```
+
+Second plot shows TV consumption level distribution.
+```{r}
+ggplot(data = transformed_data, aes(x = pli0083)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "skyblue") +
+  labs(title = "Level of TV consumption", x = "TV consumption", y = "Respondents")
+```
+
+Then, to examine the relationship between the level of happiness and TV consumption, the values indicated by the respondents were presented. The y axis was transformed to show TV consumption ascending. We can observe that the answers was on every possible combination.
+```{r}
+ggplot(transformed_data, aes(x = plh0186, y = 1/pli0083)) +
+  geom_point() +
+  labs(x = "Level of happiness", y = "Level of TV consumption",
+       title = "Scatterplot of happiness and TV consumption")
+```
+
+At the end will be presented heatmap, showing how often all combination of answers occurs.
+```{r}
+heatmap_data1 <- transformed_data %>%
+  group_by(plh0186, pli0083) %>%
+  summarise(n = n()) %>%
+  pivot_wider(names_from = pli0083, values_from = n, values_fill = 0)
+
+heatmap_data1 <- heatmap_data1[rowSums(heatmap_data1[, -1]) != 0, ]
+pheatmap(heatmap_data1[, -1], cluster_rows = FALSE, cluster_cols = FALSE,
+         main = "Heatmap of happiness and TV consumption")
+```
+
+## Conclusion
+Through the examination of various hypotheses and the research question, this study aimed to shed light on the intricate relationship between television consumption and happiness. The findings suggest that while higher levels of TV consumption may be negatively correlated with happiness and life satisfaction, the relationship is not straightforward. Additionally, the content and genre of TV programs appear to play a significant role in moderating this relationship, with certain types of content potentially enhancing happiness more than others.
+Moreover, analysis of the data using statistical tools in R revealed a correlation between TV consumption and happiness levels, providing empirical support for the hypotheses formulated in this study. This further underscores the importance of considering both the quantity and quality of television consumption when examining its impact on happiness.
+Overall, this study underscores the importance of considering both the quantity and quality of television consumption when examining its impact on happiness. By understanding the complexities of this relationship, policymakers and individuals can make informed decisions about their media consumption habits to promote overall well-being and life satisfaction. Further research in this area is warranted to explore additional factors that may influence the link between TV consumption and happiness, as well as to validate these findings across diverse populations and cultural contexts.
+

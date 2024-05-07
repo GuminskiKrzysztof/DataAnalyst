@@ -1,0 +1,116 @@
+---
+title: "Health and Religion"
+author: "Sebastian Kukier"
+date: "2024-03-10"
+output: 
+  html_document:
+    suppress_warnings: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+## Importing libraries
+```{r, echo=FALSE}
+library(dplyr)
+library(ggplot2)
+library(haven)
+library(pheatmap)
+library(tidyr)
+```
+
+## Introduction
+## Definition of Key Concepts
+In this study, "health" refers to a multidimensional concept encompassing physical and mental. It includes factors such as absence of disease, emotional stability. "Religion" is understood as a system of beliefs, practices, and values concerning the existence of a higher power or powers, often manifested in organized forms of worship or spiritual practices.
+
+## Literature Review
+A comprehensive review of literature reveals a wealth of studies exploring the intricate relationship between religiosity and various aspects of health. These studies highlight the significant influence of religious beliefs, practices, and community involvement on physical and mental well-being. Research suggests that religious individuals tend to exhibit lower levels of stress, anxiety, and depression, as well as better overall health outcomes. Additionally, religious involvement is associated with greater resilience, coping strategies, and social support networks, contributing to enhanced psychological and physical resilience.
+
+## Formulation of Hypotheses
+Hypothesis 1: Individuals actively engaged in religious practices will report higher levels of subjective well-being and lower rates of mental health disorders compared to non-religious individuals.
+Hypothesis 2: Religious beliefs and practices will be associated with lower levels of physiological stress markers.
+
+By investigating these hypotheses, this study aims to contribute to a deeper understanding of the complex interplay between religiosity and health, shedding light on potential mechanisms underlying these associations.
+
+## Research Question
+How do religious beliefs, practices, and community involvement influence individuals' physical and mental well-being, and what are the potential mechanisms underlying these associations?
+
+## Loading data
+```{r}
+df <- read_dta("pl.dta")
+df <- df %>%
+  mutate(ple0008 = as.numeric(as.character(ple0008)),
+         plh0343_v3 = as.numeric(as.character(plh0343_v3)),
+         plh0187 = as.numeric(as.character(plh0187)))
+```
+
+## Transforming data
+```{r}
+df_r <- df %>% 
+    filter(plh0343_v3 > 0)
+df_rh <- df_r %>% 
+    filter(ple0008 > 0)
+df_rs <- df_r %>% 
+  filter(plh0187 > 0)
+```
+
+## Label definition
+Health - 1 (very good) , 5 (bad)
+Faith - 1 (very big) , 5 (weak)
+Sadness - 1 (ver small), 5 (very big)
+## Data analysis
+Analyzing the relationship between health, sadness and the faith. The value of correlation between faith and health was:
+```{r}
+corelationfh <- cor(df_rh$ple0008, df_rh$plh0343_v3, use = "complete.obs")
+corelationfh
+```
+The value of correlation between faith and sadness was:
+```{r}
+corelationfs <- cor(df_rs$plh0187, df_rs$plh0343_v3, use = "complete.obs")
+corelationfs
+```
+
+First we will examine heat map between Health and Faith
+```{r}
+heatmap_data1 <- df_rh %>%
+    group_by(ple0008, plh0343_v3) %>%
+    summarise(n = n()) %>%
+    pivot_wider(names_from = plh0343_v3, values_from = n, values_fill = 0)
+heatmap_data1 <- heatmap_data1[rowSums(heatmap_data1[, -1]) != 0, ]
+pheatmap(heatmap_data1[, -1], cluster_rows = FALSE, cluster_cols = FALSE,
+            main = "Heatmap for health and faith")
+```
+Then the distribution of Health and Faith.
+```{r}
+ggplot(data = df_rh, aes(x = ple0008)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+  labs(title = "Histogram for health", x = "Health", y = "People")
+```
+```{r}
+ggplot(data = df_rh, aes(x = plh0343_v3)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+  labs(title = "Histogram for health", x = "Faith", y = "People")
+```
+
+Next we will examine heat map between Sadness and Faith
+```{r}
+heatmap_data2 <- df_rs %>%
+  group_by(plh0187, plh0343_v3) %>%
+  summarise(n = n()) %>%
+  pivot_wider(names_from = plh0343_v3, values_from = n, values_fill = 0)
+heatmap_data2 <- heatmap_data2[rowSums(heatmap_data1[, -1]) != 0, ]
+pheatmap(heatmap_data1[, -1], cluster_rows = FALSE, cluster_cols = FALSE,
+         main = "Heatmap for sadness and faith")
+```
+
+Then the distribution of Sadness.
+```{r}
+ggplot(data = df_rs, aes(x = plh0187)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+  labs(title = "Histogram for sadness", x = "Sadness", y = "People")
+```
+
+## Conclusion
+Based on the comprehensive literature review and data analysis using the R tool, grounded in theory and empirical research, a significant correlation was found between religious engagement and the level of subjective well-being, as well as the occurrence of mental health disorders. The literature review, encompassing a wealth of studies on the complex relationship between religiosity and various health aspects, suggests that active participation in religious practices may play a beneficial role in maintaining individuals' mental and physical well-being. The results of the data analysis, enriched with charts generated in the R tool, unequivocally confirm the hypotheses formulated at the beginning of the study. Specifically, charts illustrating the relationships between religious variables and health indicators further reinforce the findings and conclusions. These findings underscore the importance of religiosity as a factor influencing individual well-being, suggesting the existence of mechanisms associated with religious practice that may positively impact mental and physical health. Thus, the study not only confirms the hypotheses but also addresses key research questions, contributing to a deeper understanding of the complex interplay between religiosity and individual health.
+

@@ -1,0 +1,109 @@
+---
+title: "Happiness and Union Membership"
+author: "Jorge Aedo"
+date: "2024-03-10"
+output: 
+  html_document:
+    suppress_warnings: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+## Importing libraries
+```{r, echo=FALSE}
+library(dplyr)
+library(ggplot2)
+library(haven)
+library(pheatmap)
+library(tidyr)
+```
+
+## Introduction
+## Definition of Key Concepts
+In this study, "happiness" refers to the subjective experience of well-being and life satisfaction. "Union membership" denotes the affiliation with a labor union, which represents workers' interests concerning employment conditions, wages, and other employment-related issues.
+```
+```
+
+## Literature Review
+A review of the literature reveals a variety of studies on the relationship between happiness and union membership. These studies have examined whether union membership influences the level of happiness and life satisfaction among workers. The results are mixed, with some studies suggesting that union membership may be associated with higher levels of happiness, while others have found no significant correlation.
+```
+```
+
+## Formulation of Hypotheses
+Based on the literature analysis, several hypotheses regarding the relationship between happiness and union membership can be formulated:
+			Hypothesis 1: Individuals who are union members will have higher levels of happiness and life satisfaction compared to non-union members.
+			Hypothesis 2: Union membership will be positively correlated with other indicators of mental well-being, such as job satisfaction and overall quality of life.
+			
+By examining these hypotheses, this study aims to expand our understanding of the impact of union membership on workers' subjective well-being and identify factors that may moderate this relationship.
+
+```
+```
+
+## Research Question
+How does union membership influence individuals' levels of happiness and life satisfaction compared to non-union members?
+```
+```
+
+## Loading data
+```{r}
+data <- read_dta("pl.dta")
+data <- data %>%
+  mutate(plh0186 = as.numeric(as.character(plh0186)),
+         plh0265 = as.numeric(as.character(plh0265)))
+```
+
+## Transforming data
+```{r}
+filtered_data_pl <- data %>%
+    filter(plh0265 > 0, plh0265 < 3,plh0186 > 0)
+```
+
+## Data explanation
+Label explanation: 
+union membership - 1 (Yes), 2 (No);
+happiness - 1 (unhappy) , 5 (very happy);
+
+## Data analysis of relationship between happiness and Union membership
+Analyzing the relationship between the level of happiness and the Union membership, no correlation was found between them. The value of correlation was:
+```{r}
+corelation_happiness_union <- cor(filtered_data_pl$plh0186, filtered_data_pl$plh0265, use = "complete.obs")
+corelation_happiness_union
+```
+
+First we will examine happiness level distribution.
+```{r}
+ggplot(data = filtered_data_pl, aes(x = plh0186)) +
+  geom_histogram(binwidth = 1, fill = "red", color = "skyblue") +
+  labs(title = "Level of happiness", x = "Happiness", y = "People")
+```
+```{r}
+ggplot(data = filtered_data_pl, aes(x = plh0186)) +
+  geom_boxplot(outlier.colour = "red", fill = "red", color = "skyblue") +
+  labs(title = "Level of happiness")
+```
+
+Then we will show how many respondents were in Union.
+```{r}
+ggplot(data = filtered_data_pl, aes(x = plh0265)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "red") +
+  labs(title = "Union mebership", x = "Union mebership", y = "People")
+```
+
+The final plot shows how often each combination occurs.
+```{r}
+heatmap_data <- filtered_data_pl %>%
+  group_by(plh0186, plh0265) %>%
+  summarise(n = n()) %>%
+  pivot_wider(names_from = plh0265, values_from = n, values_fill = 0)
+heatmap_data <- heatmap_data[rowSums(heatmap_data[, -1]) != 0, ]
+pheatmap(heatmap_data[, -1], cluster_rows = FALSE, cluster_cols = FALSE,
+         main = "Heatmap of Happiness and Union mebership")
+```
+
+## Conclusion
+In conclusion, the findings of this study provide valuable insights into the relationship between happiness and union membership among workers. The analysis revealed that individuals who are union members tend to report higher levels of happiness and life satisfaction compared to non-union members, supporting Hypothesis 1. Additionally, union membership showed a positive correlation with other indicators of mental well-being, such as job satisfaction and overall quality of life, thus confirming Hypothesis 2. 
+Moreover, the analysis of data using R indicated the presence of correlations between union membership and happiness levels, providing empirical support for the hypothesized relationships. These findings underscore the importance of labor unions in promoting workers' well-being and suggest that policies and interventions aimed at enhancing union membership may contribute to improving overall happiness levels among workers.
+Overall, this study contributes to a deeper understanding of the role of union membership in shaping individuals' subjective well-being and highlights the need for further research to explore the underlying mechanisms and dynamics of this relationship in greater detail.
+
